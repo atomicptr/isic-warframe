@@ -1,0 +1,5 @@
+{
+    "name": "ISIC Warframe",
+    "ident": "github.atomicptr.isic-warframe",
+    "main": "warframe.js"
+}
