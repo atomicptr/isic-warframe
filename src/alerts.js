@@ -85,6 +85,25 @@ module.exports = function(bot, alertConfig) {
         }
     })
 
+    bot.respond(/warframe alerts/g, res => {
+        getAlerts(alerts => {
+            let noInvasions = alerts.filter(alert => alert.description != null)
+
+            let alertStrings = noInvasions.map(alert => {
+                let modlink = ""
+
+                if(alert.title.indexOf("(Mod)") > -1) {
+                    let name = alert.title.split(" (Mod)")[0]
+                    modlink = `<http://warframe.wikia.com/wiki/${encodeURIComponent(name)}>`
+                }
+
+                return `* ${alert.title} - ${alert.description} ${modlink}`
+            })
+
+            res.send(`Currently active alerts:\n\n${alertStrings.join("\n")}`)
+        })
+    })
+
     bot.interval("isic-warframe-check", _ => {
         getAlerts(alerts => {
             for(let server of bot.servers) {
