@@ -104,7 +104,7 @@ module.exports = function(bot, alertConfig) {
         })
     })
 
-    bot.interval("isic-warframe-check", _ => {
+    bot.interval("isic-warframe-alert-check", _ => {
         getAlerts(alerts => {
             for(let server of bot.servers) {
                 setupDb(server)

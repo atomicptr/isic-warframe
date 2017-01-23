@@ -1,23 +1,15 @@
-function isDefinedNested(obj, args) {
-    if(typeof args !== "undefined") {
-        args = []
-    }
-
-    for(let i = 0; i < args.length; i++) {
-        if(!obj || !obj.hasOwnProperty(args[i])) return false
-
-        obj = obj[args[i]]
-    }
-
-    return true
-}
-
 module.exports = function(bot) {
 
     let enableAlerts = true
 
-    if(isDefinedNested(bot.config.isicWarframe, ["alerts"])) {
+    if(bot.config.isicWarframe && bot.config.isicWarframe.alerts) {
         enableAlerts = bot.config.isicWarframe.alerts.disable || true
+    }
+
+    let enableVoidtrader = true
+
+    if(bot.config.isicWarframe && bot.config.isicWarframe.voidtrader) {
+        enableVoidtrader = bot.config.isicWarframe.voidtrader.disable || true
     }
 
     if(enableAlerts) {
@@ -27,5 +19,9 @@ module.exports = function(bot) {
                 bot.config.isicWarframe.alerts
             )
         )
+    }
+
+    if(enableVoidtrader) {
+        require("./src/voidtrader.js")(bot)
     }
 }
