@@ -121,7 +121,7 @@ module.exports = function(bot, alertConfig) {
 
                         const matchedPhrase = phrases.some(p => alert.title.indexOf(p) > -1)
                         const matchedImportantPhrase = importantPhrases.some(p => alert.title.indexOf(p) > -1)
-                        const matchedIgnoredPhrase = ignores.some(i => alert.title.indexOf(ignore) > -1)
+                        const matchedIgnoredPhrase = ignores.some(i => alert.title.indexOf(i) > -1)
 
                         if(matchedPhrase || matchedImportantPhrase) {
                             if(!matchedIgnoredPhrase) {
