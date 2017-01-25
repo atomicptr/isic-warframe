@@ -146,11 +146,7 @@ module.exports = function(bot, alertConfig) {
                                         bot.db(server).get("isicWarframeProcessedAlerts").push(alert.guid).value()
                                     })
                                 }
-                            } else {
-                                console.log("[?] Alert matches ignored phrase: " + alert.title)
                             }
-                        } else {
-                            console.log("[ ] alert matches no phrase: " + alert.title)
                         }
                     }
                 }
