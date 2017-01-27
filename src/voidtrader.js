@@ -95,7 +95,7 @@ module.exports = function(bot) {
                             if(baro.Manifest) {
                                 itemList =
                                     baro.Manifest.map(
-                                        item => `* **${item.itemType}** - ${item.PrimePrice.toLocaleString()} Ducats, ${item.RegularPrice.toLocaleString()} Credits`)
+                                        item => `* **${item.ItemType}** - ${item.PrimePrice.toLocaleString()} Ducats, ${item.RegularPrice.toLocaleString()} Credits`)
                                 itemListStr = `\n\nItem List:\n${itemList.join("\n")}`
                             }
 
