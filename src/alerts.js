@@ -1,11 +1,10 @@
-const request = require("request")
 const FeedParser = require("feedparser")
 const Readable = require("stream").Readable
 
 module.exports = function(bot, alertConfig) {
     function getAlerts(callback) {
         let link = "http://content.warframe.com/dynamic/rss.php"
-        request(link, (err, response, body) => {
+        bot.request(link, (err, response, body) => {
             if(err) {
                 console.error(`ERR: error with connection to ${link}: ${err.name} ${err.message}`)
                 console.error(err)

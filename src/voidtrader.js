@@ -1,10 +1,8 @@
-const request = require("request")
-
 module.exports = function(bot) {
     function getVoidTraderInfo(callback) {
         const url = "https://deathsnacks.com/wf/data/voidtraders.json"
 
-        request(url, (err, response, body) => {
+        bot.request(url, (err, response, body) => {
             if(err) {
                 console.error(err)
                 return

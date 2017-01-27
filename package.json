@@ -1,12 +1,11 @@
 {
   "name": "isic-warframe",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Warframe module for isic",
   "author": "Christopher Kaster",
   "license": "MIT",
   "dependencies": {
     "feedparser": "^2.1.0",
-    "request": "^2.79.0",
     "stream": "0.0.2"
   }
 }
