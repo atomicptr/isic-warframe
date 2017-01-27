@@ -10,7 +10,15 @@ module.exports = function(bot) {
                 return
             }
 
-            callback(JSON.parse(body)[0])
+            let json = null
+
+            try {
+                json = JSON.parse(body)[0]
+            } catch(ex) {
+                console.error(ex)
+            }
+
+            callback(json)
         })
     }
 
@@ -59,6 +67,11 @@ module.exports = function(bot) {
 
     bot.interval("isic-warframe-voidtrader-check", _ => {
         getVoidTraderInfo(baro => {
+            if(!baro) {
+                console.error("Couldn't load baro for some reason...")
+                return
+            }
+
             for(let server of bot.servers) {
                 setupDb(server)
 
