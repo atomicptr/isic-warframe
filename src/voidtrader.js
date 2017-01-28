@@ -20,6 +20,24 @@ module.exports = function(bot) {
         })
     }
 
+    function getItemName(name) {
+        const names = {
+            // quests
+            "MummyQuestKeyBlueprint": "Sands of Inaros Blueprint",
+            // ship skins
+            "LisetInsectSkinPrimeTrader": "Mantis Prisma Skin",
+            // cosmetics
+            "BaroCape": "Ki'Teer Syandana",
+            "BaroPetMask": "Ki'Teer Sentinel Mask",
+            // market place stuff
+            "CreditBooster3Day": "3 Day Credit Booster",
+            // relics
+            "T4VoidProjectionPBronze": "Axi A2 Relic"
+        }
+
+        return names[name] || name
+    }
+
     function setupDb(server) {
         bot.db(server).defaults({
             isicWarframeVoidtraderChannels: [],
@@ -93,7 +111,7 @@ module.exports = function(bot) {
                             if(baro.Manifest) {
                                 itemList =
                                     baro.Manifest.map(
-                                        item => `* **${item.ItemType}** - ${item.PrimePrice.toLocaleString()} Ducats, ${item.RegularPrice.toLocaleString()} Credits`)
+                                        item => `* **${getItemName(item.ItemType)}** - ${item.PrimePrice.toLocaleString()} Ducats, ${item.RegularPrice.toLocaleString()} Credits`)
                                 itemListStr = `\n\nItem List:\n${itemList.join("\n")}`
                             }
 
