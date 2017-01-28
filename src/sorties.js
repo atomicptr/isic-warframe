@@ -63,6 +63,11 @@ module.exports = function(bot, options) {
 
         const sortie = ws.sortie
 
+        if(!sortie) {
+            console.error("Sortie was undefined...")
+            return
+        }
+
         bot.forEveryDatabase((owner, db) => db.getState().isicWarframeSortieChannels, (owner, db) => {
             setupDb(owner)
 
