@@ -20,7 +20,7 @@ module.exports = function(bot, options) {
     }
 
     bot.command("warframe voidtrader", (res, args) => {
-        setupDb(res.server)
+        setupDb(res)
 
         if(!bot.isServerAdministrator(res.server, res.author)) {
             res.reply("I'm sorry but you don't have the permission to do that, Tenno.")
@@ -28,21 +28,21 @@ module.exports = function(bot, options) {
         }
 
         if(args[0] === "register") {
-            let alreadyExists = bot.db(res.server).get("isicWarframeVoidtraderChannels").value().indexOf(res.channelId) > -1
+            let alreadyExists = res.db.get("isicWarframeVoidtraderChannels").value().indexOf(res.channelId) > -1
 
             if(!alreadyExists) {
-                bot.db(res.server).get("isicWarframeVoidtraderChannels").push(res.channelId).value()
+                res.db.get("isicWarframeVoidtraderChannels").push(res.channelId).value()
                 res.send("Added this channel to my list.")
             } else {
                 res.send("This channel is already on my list.")
             }
         } else if(args[0] === "unregister") {
-            let state = bot.db(res.server).getState()
+            let state = res.db.getState()
             let index = state.isicWarframeVoidtraderChannels.indexOf(res.channelId)
 
             if(index > -1) {
                 state.isicWarframeVoidtraderChannels.splice(index, 1)
-                bot.db(res.server).setState(state)
+                res.db.setState(state)
 
                 res.send("Removed this channel from my list.")
             } else {

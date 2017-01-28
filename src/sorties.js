@@ -20,7 +20,7 @@ module.exports = function(bot, options) {
     }
 
     bot.command("warframe sorties", (res, args) => {
-        setupDb(res.server)
+        setupDb(res)
 
         if(!bot.isServerAdministrator(res.server, res.author)) {
             res.reply("I'm sorry but you don't have the permission to do that, Tenno.")
