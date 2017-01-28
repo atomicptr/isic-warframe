@@ -12,6 +12,20 @@ module.exports = function(bot, options) {
         return new WorldState(data)
     }
 
+    function minutesUntil(date) {
+        let pad = n => n < 10 ? `0${n}` : `${n}`
+
+        let diff = date - (new Date())
+
+        const SECOND = 1000
+        const MINUTE = SECOND * 60
+        const HOURS = MINUTE * 60
+
+        let minutes = diff % HOURS / MINUTE | 0
+
+        return `${minutes} minutes`
+    }
+
     bot.command("fissures", (res, args) => {
         const ws = worldState()
 
@@ -27,7 +41,7 @@ module.exports = function(bot, options) {
             return tier
         }
 
-        let fissureList = fissures.map(f => `${clearTier(f.tier)} - **${f.missionType}** on ${f.node}`)
+        let fissureList = fissures.map(f => `${clearTier(f.tier)} - **${f.missionType}** on ${f.node}, ${minutesUntil(f.expiry)} remaining.`)
 
         res.send(`:fish_cake: Current Void Fissures:\n\n${fissureList.join("\n")}`)
     })
