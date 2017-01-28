@@ -16,6 +16,14 @@ Lists all current alerts.
 
 Register/unregister the current channel for auto posts when Baro'Ki Teer arrives.
 
+`!warframe sorties register/unregister`
+
+Register/unregister the current channel for auto posts when new Sorties appear.
+
+`!fissures`
+
+Post the currently active void fissures.
+
 ## Configs
 
 You can filter alerts by using ```phrases```, ```importantPhrases``` and ```ignores```.
