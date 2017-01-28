@@ -1,22 +1,19 @@
 module.exports = function(bot) {
 
-    let enableAlerts = true
+    function enabled(subModule) {
+        let enabled = true
 
-    if(bot.config.isicWarframe && bot.config.isicWarframe.alerts) {
-        enableAlerts = bot.config.isicWarframe.alerts.disable || true
+        if(bot.config.isicWarframe && bot.config.isicWarframe[subModule]) {
+            enabled = bot.config.isicWarframe[subModule].disable || true
+        }
+
+        return enabled
     }
 
-    let enableVoidtrader = true
-
-    if(bot.config.isicWarframe && bot.config.isicWarframe.voidtrader) {
-        enableVoidtrader = bot.config.isicWarframe.voidtrader.disable || true
-    }
-
-    let enableSorties = true
-
-    if(bot.config.isicWarframe && bot.config.isicWarframe.sorties) {
-        enableSorties = bot.config.isicWarframe.sorties.disable || true
-    }
+    let enableAlerts = enabled("alerts")
+    let enableVoidtrader = enabled("voidtrader")
+    let enableSorties = enabled("sorties")
+    let enableFissures = enabled("fissure")
 
     if(enableAlerts) {
         require("./src/alerts.js")(bot,
@@ -48,5 +45,9 @@ module.exports = function(bot) {
 
     if(enableSorties) {
         require("./src/sorties.js")(bot)
+    }
+
+    if(enableFissures) {
+        require("./src/fissure.js")(bot)
     }
 }
