@@ -1,41 +1,15 @@
-module.exports = function(bot) {
-    function getVoidTraderInfo(callback) {
-        const url = "https://deathsnacks.com/wf/data/voidtraders.json"
+const WorldState = require("warframe-worldstate-parser")
 
-        bot.request(url, (err, response, body) => {
-            if(err) {
-                console.error(err)
-                return
-            }
+module.exports = function(bot, options, worldStateData) {
+    function worldState() {
+        let worldState = bot.mydb.get("isicWarframeWorldState").value()
 
-            let json = null
-
-            try {
-                json = JSON.parse(body)[0]
-            } catch(ex) {
-                console.error(ex)
-            }
-
-            callback(json)
-        })
-    }
-
-    function getItemName(name) {
-        const names = {
-            // quests
-            "MummyQuestKeyBlueprint": "Sands of Inaros Blueprint",
-            // ship skins
-            "LisetInsectSkinPrimeTrader": "Mantis Prisma Skin",
-            // cosmetics
-            "BaroCape": "Ki'Teer Syandana",
-            "BaroPetMask": "Ki'Teer Sentinel Mask",
-            // market place stuff
-            "CreditBooster3Day": "3 Day Credit Booster",
-            // relics
-            "T4VoidProjectionPBronze": "Axi A2 Relic"
+        if(!worldState) {
+            return null
         }
 
-        return names[name] || name
+        let data = JSON.stringify(worldState)
+        return new WorldState(data)
     }
 
     function setupDb(server) {
@@ -82,48 +56,49 @@ module.exports = function(bot) {
     })
 
     bot.interval("isic-warframe-voidtrader-check", _ => {
-        getVoidTraderInfo(baro => {
-            if(!baro) {
-                console.error("Couldn't load baro for some reason...")
-                return
-            }
+        const ws = worldState()
 
-            for(let server of bot.servers) {
-                setupDb(server)
+        if(!ws) {
+            console.error("No warframe worldstate found, skip voidtrader check")
+            return
+        }
 
-                let channels = bot.db(server).get("isicWarframeVoidtraderChannels")
+        const baro = ws.voidTrader
 
-                for(let channelId of channels) {
-                    let processedVisits = bot.db(server).get("isicWarframeVoidtraderProcessedVisits")
+        for(let server of bot.servers) {
+            setupDb(server)
 
-                    let visitIdentifier = `barokiteer_${channelId}${baro.Activation.sec}`
+            let channels = bot.db(server).get("isicWarframeVoidtraderChannels")
 
-                    if(processedVisits.indexOf(visitIdentifier) == -1) {
-                        let now = new Date()
-                        let baroDate = new Date(baro.Activation.sec * 1000)
+            for(let channelId of channels) {
+                let processedVisits = bot.db(server).get("isicWarframeVoidtraderProcessedVisits")
 
-                        console.log(`New Baro date found: ${baroDate.toLocaleString()}, can i post yet? ${now > baroDate}`)
+                let visitIdentifier = `barokiteer_${channelId}_${baro.id}`
 
-                        if(now > baroDate) {
-                            let itemList = []
-                            let itemListStr = ""
+                if(processedVisits.indexOf(visitIdentifier) == -1) {
+                    let now = new Date()
 
-                            if(baro.Manifest) {
-                                itemList =
-                                    baro.Manifest.map(
-                                        item => `* **${getItemName(item.ItemType)}** - ${item.PrimePrice.toLocaleString()} Ducats, ${item.RegularPrice.toLocaleString()} Credits`)
-                                itemListStr = `\n\nItem List:\n${itemList.join("\n")}`
-                            }
+                    console.log(`New Baro date found: ${baro.activation}, can i post yet? ${now > baro.activation}`)
 
-                            bot.sendMessageToChannel(bot.client.channels.get(channelId),
-                                `@here Baro'Ki Teer has arrived in ${baro.Node}${itemListStr}`)
-                            .then(_ => {
-                                bot.db(server).get("isicWarframeVoidtraderProcessedVisits").push(visitIdentifier).value()
-                            })
+                    if(now > baro.activation) {
+                        let itemList = []
+                        let itemListStr = ""
+
+                        if(baro.inventory.length > 0) {
+                            itemList =
+                                baro.inventory.map(
+                                    item => `* **${item.item}** - ${item.ducats.toLocaleString()} Ducats, ${item.credits.toLocaleString()} Credits`)
+                            itemListStr = `\n\nItem List:\n${itemList.join("\n")}`
                         }
+
+                        bot.sendMessageToChannel(bot.client.channels.get(channelId),
+                            `@here ${baro.character} has arrived in ${baro.location}${itemListStr}`)
+                        .then(_ => {
+                            bot.db(server).get("isicWarframeVoidtraderProcessedVisits").push(visitIdentifier).value()
+                        })
                     }
                 }
             }
-        })
+        }
     })
 }

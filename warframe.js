@@ -21,6 +21,21 @@ module.exports = function(bot) {
         )
     }
 
+    // update worldstate
+    bot.mydb.defaults({isicWarframeWorldState: null}).value()
+
+    bot.interval("isic-warframe-worldstate-update", (err, response, body) => {
+        bot.request("http://content.warframe.com/dynamic/worldState.php", (err, response, body) => {
+            if(err) {
+                return console.error(err)
+            }
+
+            console.log("updated warframe world state...")
+            bot.mydb.set("isicWarframeWorldState", JSON.parse(body)).value()
+        })
+    })
+
+    // add stuff that is using the world state below here
     if(enableVoidtrader) {
         require("./src/voidtrader.js")(bot)
     }
