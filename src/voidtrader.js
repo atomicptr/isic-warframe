@@ -63,21 +63,20 @@ module.exports = function(bot, options) {
 
         const baro = ws.voidTrader
 
-        for(let server of bot.servers) {
-            setupDb(server)
+        let now = new Date()
+        console.log(`New Baro date found: ${baro.activation}, can i post yet? ${now > baro.activation}`)
 
-            let channels = bot.db(server).get("isicWarframeVoidtraderChannels")
+        bot.forEveryDatabase((owner, db) => db.getState().isicWarframeVoidtraderChannels, (owner, db) => {
+            setupDb(owner)
+
+            let channels = bot.db(owner).get("isicWarframeVoidtraderChannels")
 
             for(let channelId of channels) {
-                let processedVisits = bot.db(server).get("isicWarframeVoidtraderProcessedVisits")
+                let processedVisits = bot.db(owner).get("isicWarframeVoidtraderProcessedVisits")
 
-                let visitIdentifier = `barokiteer_${channelId}_${baro.id}`
+                let visitIdentifier = bot.hash(`barokiteer_${channelId}_${baro.id}`)
 
                 if(processedVisits.indexOf(visitIdentifier) == -1) {
-                    let now = new Date()
-
-                    console.log(`New Baro date found: ${baro.activation}, can i post yet? ${now > baro.activation}`)
-
                     if(now > baro.activation) {
                         let itemList = []
                         let itemListStr = ""
@@ -92,11 +91,11 @@ module.exports = function(bot, options) {
                         bot.sendMessageToChannel(bot.client.channels.get(channelId),
                             `@here ${baro.character} has arrived in ${baro.location}${itemListStr}`)
                         .then(_ => {
-                            bot.db(server).get("isicWarframeVoidtraderProcessedVisits").push(visitIdentifier).value()
+                            bot.db(owner).get("isicWarframeVoidtraderProcessedVisits").push(visitIdentifier).value()
                         })
                     }
                 }
             }
-        }
+        })
     })
 }
