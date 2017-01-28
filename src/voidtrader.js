@@ -1,6 +1,6 @@
 const WorldState = require("warframe-worldstate-parser")
 
-module.exports = function(bot, options, worldStateData) {
+module.exports = function(bot, options) {
     function worldState() {
         let worldState = bot.mydb.get("isicWarframeWorldState").value()
 
@@ -12,8 +12,8 @@ module.exports = function(bot, options, worldStateData) {
         return new WorldState(data)
     }
 
-    function setupDb(server) {
-        bot.db(server).defaults({
+    function setupDb(handle) {
+        bot.db(handle).defaults({
             isicWarframeVoidtraderChannels: [],
             isicWarframeVoidtraderProcessedVisits: []
         }).value()
@@ -51,8 +51,6 @@ module.exports = function(bot, options, worldStateData) {
         } else {
             res.reply("I don't know what to do with [" + args.join(" ") + "]")
         }
-
-        bot.db(res.server).get("isicWarframeVoidtraderChannels")
     })
 
     bot.interval("isic-warframe-voidtrader-check", _ => {

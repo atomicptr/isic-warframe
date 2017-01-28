@@ -12,6 +12,12 @@ module.exports = function(bot) {
         enableVoidtrader = bot.config.isicWarframe.voidtrader.disable || true
     }
 
+    let enableSorties = true
+
+    if(bot.config.isicWarframe && bot.config.isicWarframe.sorties) {
+        enableSorties = bot.config.isicWarframe.sorties.disable || true
+    }
+
     if(enableAlerts) {
         require("./src/alerts.js")(bot,
             Object.assign({},
@@ -38,5 +44,9 @@ module.exports = function(bot) {
     // add stuff that is using the world state below here
     if(enableVoidtrader) {
         require("./src/voidtrader.js")(bot)
+    }
+
+    if(enableSorties) {
+        require("./src/sorties.js")(bot)
     }
 }
