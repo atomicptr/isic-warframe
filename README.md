@@ -35,6 +35,7 @@ You can filter alerts by using ```phrases```, ```importantPhrases``` and ```igno
 ```json
 ...
     "isicWarframe": {
+        "platform": "pc",
         "alerts": {
             "phrases": [
                 "(Mod)",
@@ -59,6 +60,28 @@ You can filter alerts by using ```phrases```, ```importantPhrases``` and ```igno
             "ignores": []
         }
     }
+...
+```
+
+### Get PS4 or XB1 data instead
+
+The bot supports the console world states you just have to put the "platform" option into "isicWarframe" like this for PS4:
+
+```json
+...
+    "isicWarframe": {
+        "platform": "ps4"
+    },
+...
+```
+
+or this for XB1:
+
+```json
+...
+    "isicWarframe": {
+        "platform": "xb1"
+    },
 ...
 ```
 
