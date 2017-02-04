@@ -53,6 +53,27 @@ module.exports = function(bot, options) {
         }
     })
 
+    bot.command("sorties", (res, args) => {
+        const ws = worldState()
+
+        if(!ws) {
+            console.error("No warframe worldstate found, skip sortie check")
+            return
+        }
+
+        const sortie = ws.sortie
+
+        if(!sortie) {
+            res.send("There are currently no sorties available, try again later.")
+        } else {
+            let counter = 1
+            res.send(
+                `:briefcase: Current Sorties:\n\n${sortie.variants.map(v =>
+                    `${counter++}. **${v.missionType}** on ${v.node}\n\tModifier: ${v.modifier}`).join("\n")}`
+            )
+        }
+    })
+
     bot.interval("isic-warframe-sortie-check", _ => {
         const ws = worldState()
 
