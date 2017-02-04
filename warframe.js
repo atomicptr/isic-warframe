@@ -1,3 +1,7 @@
+const WORLDSTATE_URL_PC = "http://content.warframe.com/dynamic/worldState.php"
+const WORLDSTATE_URL_PS4 = "http://content.ps4.warframe.com/dynamic/worldState.php"
+const WORLDSTATE_URL_XB1 = "http://content.xb1.warframe.com/dynamic/worldState.php"
+
 module.exports = function(bot) {
 
     function enabled(subModule) {
@@ -28,7 +32,19 @@ module.exports = function(bot) {
     bot.mydb.defaults({isicWarframeWorldState: null}).value()
 
     bot.interval("isic-warframe-worldstate-update", (err, response, body) => {
-        bot.request("http://content.warframe.com/dynamic/worldState.php", (err, response, body) => {
+        let platform = "pc"
+
+        let url = WORLDSTATE_URL_PC
+
+        if(enabled("platform")) {
+            if(platform.toLowerCase() === "ps4") {
+                url = WORLDSTATE_URL_PS4
+            } else if(platform.toLowerCase() === "xb1" || platform.toLowerCase() === "xbone") {
+                url = WORLDSTATE_URL_XB1
+            }
+        }
+
+        bot.request(url, (err, response, body) => {
             if(err) {
                 return console.error(err)
             }
