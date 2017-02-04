@@ -20,6 +20,10 @@ Register/unregister the current channel for auto posts when Baro'Ki Teer arrives
 
 Register/unregister the current channel for auto posts when new Sorties appear.
 
+`!sorties`
+
+Post the currently active sorties.
+
 `!fissures`
 
 Post the currently active void fissures.
