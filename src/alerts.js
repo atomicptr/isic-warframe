@@ -83,14 +83,13 @@ module.exports = function(bot, alertConfig) {
         const alerts = ws.alerts
 
         function rewards(alert) {
-            const rewards = alert.mission.reward
-            const items = rewards.items
-            const credits = rewards.credits
+            const items = alert.mission.reward.items
+            const credits = alert.mission.reward.credits
+            const countedItems = alert.mission.reward.countedItems
 
-            // TODO add em too
-            console.log(rewards.countedItems)
+            let rewards = (credits > 0 ? [`${credits} Credits`] : []).concat(items.concat(countedItems.map(i => `${i.count}x ${i.type}`)))
 
-            return (credits > 0 ? `${credits}c ` : "") + items.join(", ")
+            return `${rewards.join(", ")}`
         }
 
         const alertStrings = alerts.sort((a, b) => a.expiry.getTime() - b.expiry.getTime()).map(a =>
