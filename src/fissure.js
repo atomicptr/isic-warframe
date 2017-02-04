@@ -39,6 +39,6 @@ module.exports = function(bot, options) {
 
         let fissureList = fissures.map(f => `${clearTier(f.tier)} - **${f.missionType}** on ${f.node}, ${minutesUntil(f.expiry)} remaining.`)
 
-        res.send(`:fish_cake: Current Void Fissures:\n\n${fissureList.join("\n")}`)
+        res.send(`${res.serverEmoji("WF_Lotus", ":fish_cake:")} Current Void Fissures:\n\n${fissureList.join("\n")}`)
     })
 }

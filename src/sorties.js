@@ -107,7 +107,7 @@ module.exports = function(bot, options) {
                         let sortieList = sortie.variants.map(v => `${counter++}. **${v.missionType}** on ${v.node}\n\tModifier: ${v.modifier}`)
 
                         bot.sendMessageToChannel(bot.client.channels.get(channelId),
-                            `:briefcase: New Sorties:\n\n${sortieList.join("\n")}`)
+                            `${bot.serverEmoji(owner, "WF_Lotus", ":briefcase:")} New Sorties:\n\n${sortieList.join("\n")}`)
                         .then(_ => {
                             bot.db(owner).get("isicWarframeProcessedSorties").push(visitIdentifier).value()
                         })

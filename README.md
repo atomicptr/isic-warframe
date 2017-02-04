@@ -89,6 +89,12 @@ or this for XB1:
 ...
 ```
 
+## Emoji
+
+If you want to see Warframe icons instead of text in your server upload the emojis in assets/emoji to your server with the exact same name (`WF_Credits.png` must be named `WF_Credits`), the bot will try to look them up and post them if available instead of the text.
+
+These emoji icons are from the [Warframe Discord Emoji](https://github.com/Warframe-Community-Developers/warframe-discord-emoji)
+
 ## License
 
 MIT

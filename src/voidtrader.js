@@ -84,12 +84,12 @@ module.exports = function(bot, options) {
                         if(baro.inventory.length > 0) {
                             itemList =
                                 baro.inventory.map(
-                                    item => `* **${item.item}** - ${item.ducats.toLocaleString()} Ducats, ${item.credits.toLocaleString()} Credits`)
+                                    item => `* **${item.item}** - ${item.ducats.toLocaleString()} ${bot.serverEmoji(owner, "WF_Ducats", "Ducats")}, ${item.credits.toLocaleString()} ${bot.serverEmoji(owner, "WF_Credits", "Credits")}`)
                             itemListStr = `\n\nItem List:\n${itemList.join("\n")}`
                         }
 
                         bot.sendMessageToChannel(bot.client.channels.get(channelId),
-                            `@here ${baro.character} has arrived in ${baro.location}${itemListStr}`)
+                            `@here ${bot.serverEmoji(owner, "WF_Baro", "")} ${baro.character} has arrived in ${baro.location}${itemListStr}`)
                         .then(_ => {
                             bot.db(owner).get("isicWarframeVoidtraderProcessedVisits").push(visitIdentifier).value()
                         })
