@@ -8,7 +8,7 @@ Warframe module for the [Discord](https://discordapp.com) bot [isic](https://git
 
 Register/unregister the current channel for alert auto posts, check **Configs**.
 
-`!warframe alerts`
+`!alerts`
 
 Lists all current alerts.
 

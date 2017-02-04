@@ -1,7 +1,29 @@
 const FeedParser = require("feedparser")
 const Readable = require("stream").Readable
+const WorldState = require("warframe-worldstate-parser")
 
 module.exports = function(bot, alertConfig) {
+    function worldState() {
+        let worldState = bot.mydb.get("isicWarframeWorldState").value()
+
+        if(!worldState) {
+            return null
+        }
+
+        let data = JSON.stringify(worldState)
+        return new WorldState(data)
+    }
+
+    function minutesUntil(date) {
+        let pad = n => n < 10 ? `0${n}` : `${n}`
+        let diff = date - (new Date())
+        const SECOND = 1000
+        const MINUTE = SECOND * 60
+        const HOURS = MINUTE * 60
+        let minutes = diff / MINUTE | 0
+        return `${minutes} minutes`
+    }
+
     function getAlerts(callback) {
         let link = "http://content.warframe.com/dynamic/rss.php"
         bot.request(link, (err, response, body) => {
@@ -50,6 +72,35 @@ module.exports = function(bot, alertConfig) {
         }).value()
     }
 
+    bot.command("alerts", (res, args) => {
+        const ws = worldState()
+
+        if(!ws) {
+            console.error("No warframe worldstate found, skip alerts check")
+            return
+        }
+
+        const alerts = ws.alerts
+
+        function rewards(alert) {
+            const rewards = alert.mission.reward
+            const items = rewards.items
+            const credits = rewards.credits
+
+            // TODO add em too
+            console.log(rewards.countedItems)
+
+            return (credits > 0 ? `${credits}c ` : "") + items.join(", ")
+        }
+
+        const alertStrings = alerts.sort((a, b) => a.expiry.getTime() - b.expiry.getTime()).map(a =>
+            `${a.mission.description ? "**" + a.mission.description + "**\n" : ""}**Alert**: ${a.mission.type} on ${a.mission.node}` +
+            ` (${a.mission.faction}, ${a.mission.minEnemyLevel} - ${a.mission.maxEnemyLevel})\n**Rewards**: ${rewards(a)}\n` +
+            `**Time**: ${minutesUntil(a.expiry)} remaining.\n`)
+
+        res.send(":balloon: Current alerts:\n\n" + alertStrings.join("\n"))
+    })
+
     bot.command("warframe alert", (res, args) => {
         setupDb(res.server)
 
@@ -82,25 +133,6 @@ module.exports = function(bot, alertConfig) {
         } else {
             res.reply("I don't know what to do with [" + args.join(" ") + "]")
         }
-    })
-
-    bot.respond(/warframe alerts/g, res => {
-        getAlerts(alerts => {
-            let noInvasions = alerts.filter(alert => alert.description != null)
-
-            let alertStrings = noInvasions.map(alert => {
-                let modlink = ""
-
-                if(alert.title.indexOf("(Mod)") > -1) {
-                    let name = alert.title.split(" (Mod)")[0]
-                    modlink = `<http://warframe.wikia.com/wiki/${encodeURIComponent(name)}>`
-                }
-
-                return `* ${alert.title} - ${alert.description} ${modlink}`
-            })
-
-            res.send(`Currently active alerts:\n\n${alertStrings.join("\n")}`)
-        })
     })
 
     bot.interval("isic-warframe-alert-check", _ => {

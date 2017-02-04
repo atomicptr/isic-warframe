@@ -14,15 +14,11 @@ module.exports = function(bot, options) {
 
     function minutesUntil(date) {
         let pad = n => n < 10 ? `0${n}` : `${n}`
-
         let diff = date - (new Date())
-
         const SECOND = 1000
         const MINUTE = SECOND * 60
         const HOURS = MINUTE * 60
-
-        let minutes = diff % HOURS / MINUTE | 0
-
+        let minutes = diff / MINUTE | 0
         return `${minutes} minutes`
     }
 
