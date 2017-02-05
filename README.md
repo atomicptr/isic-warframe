@@ -16,6 +16,10 @@ Lists all current alerts.
 
 Register/unregister the current channel for auto posts when Baro'Ki Teer arrives.
 
+`!voidtrader`
+
+Posts the current stock of Baro'Ki Teer.
+
 `!warframe sorties register/unregister`
 
 Register/unregister the current channel for auto posts when new Sorties appear.

@@ -1,17 +1,6 @@
-const WorldState = require("warframe-worldstate-parser")
+const utils = require("./utils.js")
 
 module.exports = function(bot, options) {
-    function worldState() {
-        let worldState = bot.mydb.get("isicWarframeWorldState").value()
-
-        if(!worldState) {
-            return null
-        }
-
-        let data = JSON.stringify(worldState)
-        return new WorldState(data)
-    }
-
     function setupDb(handle) {
         bot.db(handle).defaults({
             isicWarframeSortieChannels: [],
@@ -54,7 +43,7 @@ module.exports = function(bot, options) {
     })
 
     bot.command("sorties", (res, args) => {
-        const ws = worldState()
+        const ws = utils.worldState(bot)
 
         if(!ws) {
             console.error("No warframe worldstate found, skip sortie check")
@@ -75,7 +64,7 @@ module.exports = function(bot, options) {
     })
 
     bot.interval("isic-warframe-sortie-check", _ => {
-        const ws = worldState()
+        const ws = utils.worldState(bot)
 
         if(!ws) {
             console.error("No warframe worldstate found, skip sortie check")

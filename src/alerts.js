@@ -1,28 +1,7 @@
-const WorldState = require("warframe-worldstate-parser")
+const utils = require("./utils.js")
 
 module.exports = function(bot, alertConfig) {
-    function worldState() {
-        let worldState = bot.mydb.get("isicWarframeWorldState").value()
-
-        if(!worldState) {
-            return null
-        }
-
-        let data = JSON.stringify(worldState)
-        return new WorldState(data)
-    }
-
-    function minutesUntil(date) {
-        let pad = n => n < 10 ? `0${n}` : `${n}`
-        let diff = date - (new Date())
-        const SECOND = 1000
-        const MINUTE = SECOND * 60
-        const HOURS = MINUTE * 60
-        let minutes = diff / MINUTE | 0
-        return `${minutes} minutes`
-    }
-
-    function setupDb(server) {
+    function setupDatabase(server) {
         bot.db(server).defaults({
             isicWarframeAlertsChannels: [],
             isicWarframeProcessedAlerts : []
@@ -66,7 +45,7 @@ module.exports = function(bot, alertConfig) {
     }
 
     bot.command("alerts", (res, args) => {
-        const ws = worldState()
+        const ws = utils.worldState(bot)
 
         if(!ws) {
             console.error("No warframe worldstate found, skip alerts check")
@@ -78,13 +57,13 @@ module.exports = function(bot, alertConfig) {
         const alertStrings = alerts.sort((a, b) => a.expiry.getTime() - b.expiry.getTime()).map(a =>
             `${a.mission.description ? "**" + a.mission.description + "**\n" : ""}**Alert**: ${a.mission.type} on ${a.mission.node}` +
             ` (${a.mission.faction}, ${a.mission.minEnemyLevel} - ${a.mission.maxEnemyLevel})\n**Rewards**: ${rewards(res.server, a.mission.reward)}\n` +
-            `**Time**: ${minutesUntil(a.expiry)} remaining.\n`)
+            `**Time**: ${utils.timeUntilString(a.expiry)} remaining.\n`)
 
         res.send(res.serverEmoji("WF_Lotus", ":balloon:") + " Current alerts:\n\n" + alertStrings.join("\n"))
     })
 
     bot.command("warframe alert", (res, args) => {
-        setupDb(res.server)
+        setupDatabase(res.server)
 
         if(!bot.isServerAdministrator(res.server, res.author)) {
             res.reply("I'm sorry but you don't have the permission to do that.")
@@ -118,7 +97,7 @@ module.exports = function(bot, alertConfig) {
     })
 
     bot.interval("isic-warframe-alert-check", _ => {
-        const ws = worldState()
+        const ws = utils.worldState(bot)
 
         if(!ws) {
             console.error("No warframe worldstate found, skip alerts check")
@@ -129,7 +108,7 @@ module.exports = function(bot, alertConfig) {
         const invasions = ws.invasions
 
         bot.forEveryDatabase((owner, db) => db.getState().isicWarframeAlertsChannels, (owner, db) => {
-            setupDb(owner)
+            setupDatabase(owner)
 
             let alertChannels = db.get("isicWarframeAlertsChannels")
             let processedAlerts = db.get("isicWarframeProcessedAlerts")
@@ -153,7 +132,7 @@ module.exports = function(bot, alertConfig) {
                                 bot.sendMessageToChannel(bot.client.channels.get(channelId),
                                     `${matchedImportantPhrase ? "@here " : ""}${alert.mission.description ? "**" + alert.mission.description + "**\n" : ""}**Alert**: ${alert.mission.type} on ${alert.mission.node}` +
                                     ` (${alert.mission.faction}, ${alert.mission.minEnemyLevel} - ${alert.mission.maxEnemyLevel})\n**Rewards**: ${rewards(owner, alert.mission.reward)}\n` +
-                                    `**Time**: ${minutesUntil(alert.expiry)} remaining.\n`
+                                    `**Time**: ${utils.timeUntilString(alert.expiry)} remaining.\n`
                                 )
                                 .then(message => {
                                     db.get("isicWarframeProcessedAlerts").push(alert.id).value()

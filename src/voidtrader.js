@@ -1,17 +1,6 @@
-const WorldState = require("warframe-worldstate-parser")
+const utils = require("./utils.js")
 
 module.exports = function(bot, options) {
-    function worldState() {
-        let worldState = bot.mydb.get("isicWarframeWorldState").value()
-
-        if(!worldState) {
-            return null
-        }
-
-        let data = JSON.stringify(worldState)
-        return new WorldState(data)
-    }
-
     function setupDb(handle) {
         bot.db(handle).defaults({
             isicWarframeVoidtraderChannels: [],
@@ -53,8 +42,37 @@ module.exports = function(bot, options) {
         }
     })
 
+    bot.command("voidtrader", (res, args) => {
+        const ws = utils.worldState(bot)
+
+        if(!ws) {
+            console.error("No warframe worldstate found, skip voidtrader check")
+            return
+        }
+
+        const baro = ws.voidTrader
+
+        let now = new Date()
+
+        if(now > baro.activation) {
+            let itemList = []
+            let itemListStr = ""
+
+            if(baro.inventory.length > 0) {
+                itemList =
+                    baro.inventory.map(
+                        item => `* **${item.item}** - ${item.ducats.toLocaleString()} ${bot.serverEmoji(owner, "WF_Ducats", "Ducats")}, ${item.credits.toLocaleString()} ${bot.serverEmoji(owner, "WF_Credits", "Credits")}`)
+                itemListStr = `\n\nItem List:\n${itemList.join("\n")}`
+            }
+
+            res.send(`${bot.serverEmoji(owner, "WF_Baro", "")} ${baro.character} is at ${baro.location}${itemListStr}`)
+        } else {
+            res.send(`${res.serverEmoji("WF_Baro", "")} ${baro.character} appears in ${utils.timeUntilString(baro.activation)} at ${baro.location}`)
+        }
+    })
+
     bot.interval("isic-warframe-voidtrader-check", _ => {
-        const ws = worldState()
+        const ws = utils.worldState(bot)
 
         if(!ws) {
             console.error("No warframe worldstate found, skip voidtrader check")
