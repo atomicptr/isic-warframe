@@ -1,5 +1,3 @@
-const FeedParser = require("feedparser")
-const Readable = require("stream").Readable
 const WorldState = require("warframe-worldstate-parser")
 
 module.exports = function(bot, alertConfig) {
@@ -22,47 +20,6 @@ module.exports = function(bot, alertConfig) {
         const HOURS = MINUTE * 60
         let minutes = diff / MINUTE | 0
         return `${minutes} minutes`
-    }
-
-    function getAlerts(callback) {
-        let link = "http://content.warframe.com/dynamic/rss.php"
-        bot.request(link, (err, response, body) => {
-            if(err) {
-                console.error(`ERR: error with connection to ${link}: ${err.name} ${err.message}`)
-                console.error(err)
-                return []
-            }
-
-            let feedparser = new FeedParser()
-
-            feedparser._alerts = []
-
-            feedparser.on("error", err => {
-                console.error(`ERR: error with connection to ${link}: ${err.name} ${err.message}`)
-                console.error(err)
-            })
-
-            feedparser.on("readable", function() {
-                let article = null
-
-                while(article = this.read()) {
-                    this._alerts.push(article)
-                }
-            })
-
-            feedparser.on("end", function() {
-                console.log(`${this._alerts.length} alerts found on ${link}`)
-                callback(this._alerts)
-            })
-
-            // convert string into stream
-            let bodyStream = new Readable()
-            bodyStream._read = function() {}
-            bodyStream.push(body)
-            bodyStream.push(null)
-
-            bodyStream.pipe(feedparser)
-        })
     }
 
     function setupDb(server) {
@@ -96,10 +53,10 @@ module.exports = function(bot, alertConfig) {
         return item
     }
 
-    function rewards(server, alert) {
-        const items = alert.mission.reward.items
-        const credits = alert.mission.reward.credits
-        const countedItems = alert.mission.reward.countedItems
+    function rewards(server, reward) {
+        const items = reward.items
+        const credits = reward.credits
+        const countedItems = reward.countedItems
 
         let newitems = items.map(i => rewardify(server, i))
 
@@ -120,7 +77,7 @@ module.exports = function(bot, alertConfig) {
 
         const alertStrings = alerts.sort((a, b) => a.expiry.getTime() - b.expiry.getTime()).map(a =>
             `${a.mission.description ? "**" + a.mission.description + "**\n" : ""}**Alert**: ${a.mission.type} on ${a.mission.node}` +
-            ` (${a.mission.faction}, ${a.mission.minEnemyLevel} - ${a.mission.maxEnemyLevel})\n**Rewards**: ${rewards(res.server, a)}\n` +
+            ` (${a.mission.faction}, ${a.mission.minEnemyLevel} - ${a.mission.maxEnemyLevel})\n**Rewards**: ${rewards(res.server, a.mission.reward)}\n` +
             `**Time**: ${minutesUntil(a.expiry)} remaining.\n`)
 
         res.send(res.serverEmoji("WF_Lotus", ":balloon:") + " Current alerts:\n\n" + alertStrings.join("\n"))
@@ -169,6 +126,7 @@ module.exports = function(bot, alertConfig) {
         }
 
         const alerts = ws.alerts
+        const invasions = ws.invasions
 
         bot.forEveryDatabase((owner, db) => db.getState().isicWarframeAlertsChannels, (owner, db) => {
             setupDb(owner)
@@ -184,9 +142,9 @@ module.exports = function(bot, alertConfig) {
 
                     const items = alert.mission.reward.items.concat(alert.mission.reward.countedItems.map(i => `${i.count}x ${i.type}`))
 
-                    const matchedPhrase = alert.mission.reward.items.some(item => phrases.some(p => item.indexOf(p) > -1))
-                    const matchedImportantPhrase = alert.mission.reward.items.some(item => importantPhrases.some(p => item.indexOf(p) > -1))
-                    const matchedIgnoredPhrase = alert.mission.reward.items.some(item => ignores.some(p => item.indexOf(p) > -1))
+                    const matchedPhrase = items.some(item => phrases.some(p => item.indexOf(p) > -1))
+                    const matchedImportantPhrase = items.some(item => importantPhrases.some(p => item.indexOf(p) > -1))
+                    const matchedIgnoredPhrase = items.some(item => ignores.some(p => item.indexOf(p) > -1))
 
                     if(matchedPhrase || matchedImportantPhrase) {
                         if(!matchedIgnoredPhrase) {
@@ -194,7 +152,7 @@ module.exports = function(bot, alertConfig) {
                                 console.log(alert)
                                 bot.sendMessageToChannel(bot.client.channels.get(channelId),
                                     `${matchedImportantPhrase ? "@here " : ""}${alert.mission.description ? "**" + alert.mission.description + "**\n" : ""}**Alert**: ${alert.mission.type} on ${alert.mission.node}` +
-                                    ` (${alert.mission.faction}, ${alert.mission.minEnemyLevel} - ${alert.mission.maxEnemyLevel})\n**Rewards**: ${rewards(owner, alert)}\n` +
+                                    ` (${alert.mission.faction}, ${alert.mission.minEnemyLevel} - ${alert.mission.maxEnemyLevel})\n**Rewards**: ${rewards(owner, alert.mission.reward)}\n` +
                                     `**Time**: ${minutesUntil(alert.expiry)} remaining.\n`
                                 )
                                 .then(message => {
@@ -206,57 +164,47 @@ module.exports = function(bot, alertConfig) {
                 }
             }
 
-            // TODO: look for invasions too
-        })
-    })
+            for(let invasion of invasions) {
+                if(!invasion.completed && processedAlerts.indexOf(invasion.id) == -1) {
+                    const phrases = alertConfig.phrases
+                    const importantPhrases = alertConfig.importantPhrases
+                    const ignores = alertConfig.ignores
 
-    /*bot.interval("isic-warframe-alert-check", _ => {
-        getAlerts(alerts => {
-            for(let server of bot.servers) {
-                setupDb(server)
+                    const attackerRewards = invasion.attackerReward.items.concat(invasion.attackerReward.countedItems.map(i => `${i.count}x ${i.type}`))
+                    const defenderRewards = invasion.attackerReward.items.concat(invasion.attackerReward.countedItems.map(i => `${i.count}x ${i.type}`))
 
-                let alertChannels = bot.db(server).get("isicWarframeAlertsChannels")
-                let processedAlerts = bot.db(server).get("isicWarframeProcessedAlerts")
+                    const items = attackerRewards.concat(defenderRewards)
 
-                for(let alert of alerts) {
-                    // alert is not known
-                    if(processedAlerts.indexOf(alert.guid) == -1) {
-                        const phrases = alertConfig.phrases
-                        const importantPhrases = alertConfig.importantPhrases
-                        const ignores = alertConfig.ignores
+                    const matchedPhrase = items.some(item => phrases.some(p => item.indexOf(p) > -1))
+                    const matchedImportantPhrase = items.some(item => importantPhrases.some(p => item.indexOf(p) > -1))
+                    const matchedIgnoredPhrase = items.some(item => ignores.some(p => item.indexOf(p) > -1))
 
-                        const matchedPhrase = phrases.some(p => alert.title.indexOf(p) > -1)
-                        const matchedImportantPhrase = importantPhrases.some(p => alert.title.indexOf(p) > -1)
-                        const matchedIgnoredPhrase = ignores.some(i => alert.title.indexOf(i) > -1)
+                    if(matchedPhrase || matchedImportantPhrase) {
+                        if(!matchedIgnoredPhrase) {
+                            for(let channelId of alertChannels) {
+                                console.log(invasion)
 
-                        if(matchedPhrase || matchedImportantPhrase) {
-                            if(!matchedIgnoredPhrase) {
-                                console.log("[X] alert matches phrase " + alert.title)
+                                let str = `${matchedImportantPhrase ? "@here " : ""}${invasion.desc ? "**" + invasion.desc + "**\n" : ""}`
+                                str += `**Invasion**: ${invasion.attackingFaction} vs ${invasion.defendingFaction} on ${invasion.node}\n`
 
-                                let modlink = ""
-
-                                if(alert.title.indexOf("(Mod)") > -1) {
-                                    let name = alert.title.split(" (Mod)")[0]
-                                    modlink = `<http://warframe.wikia.com/wiki/${encodeURIComponent(name)}>`
+                                if(invasion.attackingFaction !== "Infested") {
+                                    str += `**${invasion.attackingFaction} Rewards**: ${rewards(owner, invasion.attackerReward)}\n`
                                 }
 
-                                let icon = ":tophat:"
-
-                                if(matchedImportantPhrase) {
-                                    icon = "@here :star:"
+                                if(invasion.defendingFaction !== "Infested") {
+                                    str += `**${invasion.defendingFaction} Rewards**: ${rewards(owner, invasion.defenderReward)}\n`
                                 }
 
-                                for(let channelId of alertChannels) {
-                                    console.log(alert.title)
-                                    bot.sendMessageToChannel(bot.client.channels.get(channelId), `${icon} ${rewardify(alert.title)} - ${alert.description} ${modlink}`).then(message => {
-                                        bot.db(server).get("isicWarframeProcessedAlerts").push(alert.guid).value()
-                                    })
-                                }
+                                str += `**Progress**: ${invasion.completion.toFixed(2)}%\n`
+
+                                bot.sendMessageToChannel(bot.client.channels.get(channelId), str).then(message => {
+                                    db.get("isicWarframeProcessedAlerts").push(invasion.id).value()
+                                })
                             }
                         }
                     }
                 }
             }
         })
-    })*/
+    })
 }
