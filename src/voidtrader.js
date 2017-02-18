@@ -46,7 +46,7 @@ module.exports = function(bot, options) {
         const ws = utils.worldState(bot)
 
         if(!ws) {
-            console.error("No warframe worldstate found, skip voidtrader check")
+            bot.error("No warframe worldstate found, skip voidtrader check")
             return
         }
 
@@ -61,11 +61,11 @@ module.exports = function(bot, options) {
             if(baro.inventory.length > 0) {
                 itemList =
                     baro.inventory.map(
-                        item => `* **${item.item}** - ${item.ducats.toLocaleString()} ${bot.serverEmoji(owner, "WF_Ducats", "Ducats")}, ${item.credits.toLocaleString()} ${bot.serverEmoji(owner, "WF_Credits", "Credits")}`)
+                        item => `* **${item.item}** - ${item.ducats.toLocaleString()} ${bot.serverEmoji(res.server, "WF_Ducats", "Ducats")}, ${item.credits.toLocaleString()} ${bot.serverEmoji(res.server, "WF_Credits", "Credits")}`)
                 itemListStr = `\n\nItem List:\n${itemList.join("\n")}`
             }
 
-            res.send(`${bot.serverEmoji(owner, "WF_Baro", "")} ${baro.character} is at ${baro.location}${itemListStr}`)
+            res.send(`${bot.serverEmoji(res.server, "WF_Baro", "")} ${baro.character} is at ${baro.location}${itemListStr}`)
         } else {
             res.send(`${res.serverEmoji("WF_Baro", "")} ${baro.character} appears in ${utils.timeUntilString(baro.activation)} at ${baro.location}`)
         }
@@ -75,24 +75,24 @@ module.exports = function(bot, options) {
         const ws = utils.worldState(bot)
 
         if(!ws) {
-            console.error("No warframe worldstate found, skip voidtrader check")
+            bot.error("No warframe worldstate found, skip voidtrader check")
             return
         }
 
         const baro = ws.voidTrader
 
         let now = new Date()
-        console.log(`New Baro date found: ${baro.activation}, can i post yet? ${now > baro.activation}`)
+        bot.debug(`New Baro date found: ${baro.activation}, can i post yet? ${now > baro.activation}`)
 
         bot.forEveryDatabase((owner, db) => db.getState().isicWarframeVoidtraderChannels, (owner, db) => {
             setupDb(owner)
 
-            let channels = bot.db(owner).get("isicWarframeVoidtraderChannels")
+            let channels = db.get("isicWarframeVoidtraderChannels")
 
             for(let channelId of channels) {
-                let processedVisits = bot.db(owner).get("isicWarframeVoidtraderProcessedVisits")
+                let processedVisits = db.get("isicWarframeVoidtraderProcessedVisits")
 
-                let visitIdentifier = bot.hash(`barokiteer_${channelId}_${baro.id}`)
+                let visitIdentifier = bot.hash(`barokiteer_${channelId}_${baro.id}_${baro.expiry.getTime()}`)
 
                 if(processedVisits.indexOf(visitIdentifier) == -1) {
                     if(now > baro.activation) {
@@ -109,7 +109,7 @@ module.exports = function(bot, options) {
                         bot.sendMessageToChannel(bot.client.channels.get(channelId),
                             `@here ${bot.serverEmoji(owner, "WF_Baro", "")} ${baro.character} has arrived in ${baro.location}${itemListStr}`)
                         .then(_ => {
-                            bot.db(owner).get("isicWarframeVoidtraderProcessedVisits").push(visitIdentifier).value()
+                            db.get("isicWarframeVoidtraderProcessedVisits").push(visitIdentifier).value()
                         })
                     }
                 }

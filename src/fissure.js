@@ -5,7 +5,7 @@ module.exports = function(bot, options) {
         const ws = utils.worldState(bot)
 
         if(!ws) {
-            console.error("No warframe worldstate found")
+            bot.error("No warframe worldstate found")
             return
         }
 

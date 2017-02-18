@@ -49,7 +49,7 @@ module.exports = function(bot) {
                 return console.error(err)
             }
 
-            console.log("updated warframe world state...")
+            bot.log("updated warframe world state...")
             bot.mydb.set("isicWarframeWorldState", JSON.parse(body)).value()
         })
     })

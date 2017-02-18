@@ -48,7 +48,7 @@ module.exports = function(bot, alertConfig) {
         const ws = utils.worldState(bot)
 
         if(!ws) {
-            console.error("No warframe worldstate found, skip alerts check")
+            bot.error("No warframe worldstate found, skip alerts check")
             return
         }
 
@@ -100,7 +100,7 @@ module.exports = function(bot, alertConfig) {
         const ws = utils.worldState(bot)
 
         if(!ws) {
-            console.error("No warframe worldstate found, skip alerts check")
+            bot.error("No warframe worldstate found, skip alerts check")
             return
         }
 
@@ -128,7 +128,7 @@ module.exports = function(bot, alertConfig) {
                     if(matchedPhrase || matchedImportantPhrase) {
                         if(!matchedIgnoredPhrase) {
                             for(let channelId of alertChannels) {
-                                console.log(alert)
+                                bot.debug(alert)
                                 bot.sendMessageToChannel(bot.client.channels.get(channelId),
                                     `${matchedImportantPhrase ? "@here " : ""}${alert.mission.description ? "**" + alert.mission.description + "**\n" : ""}**Alert**: ${alert.mission.type} on ${alert.mission.node}` +
                                     ` (${alert.mission.faction}, ${alert.mission.minEnemyLevel} - ${alert.mission.maxEnemyLevel})\n**Rewards**: ${rewards(owner, alert.mission.reward)}\n` +
@@ -161,7 +161,7 @@ module.exports = function(bot, alertConfig) {
                     if(matchedPhrase || matchedImportantPhrase) {
                         if(!matchedIgnoredPhrase) {
                             for(let channelId of alertChannels) {
-                                console.log(invasion)
+                                bot.debug(invasion)
 
                                 let str = `${matchedImportantPhrase ? "@here " : ""}${invasion.desc ? "**" + invasion.desc + "**\n" : ""}`
                                 str += `**Invasion**: ${invasion.attackingFaction} vs ${invasion.defendingFaction} on ${invasion.node}\n`

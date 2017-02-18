@@ -46,7 +46,7 @@ module.exports = function(bot, options) {
         const ws = utils.worldState(bot)
 
         if(!ws) {
-            console.error("No warframe worldstate found, skip sortie check")
+            bot.error("No warframe worldstate found, skip sortie check")
             return
         }
 
@@ -67,14 +67,14 @@ module.exports = function(bot, options) {
         const ws = utils.worldState(bot)
 
         if(!ws) {
-            console.error("No warframe worldstate found, skip sortie check")
+            bot.error("No warframe worldstate found, skip sortie check")
             return
         }
 
         const sortie = ws.sortie
 
         if(!sortie) {
-            console.error("Sortie was undefined...")
+            bot.error("Sortie was undefined...")
             return
         }
 
